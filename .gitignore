@@ -1,0 +1,27 @@
+# CLion generated files
+.idea/
+
+# vscode generated files
+.vscode
+
+build
+cmake-build-debug
+cmake-build-release
+cmake_build
+
+# Compiled source
+*.a
+*.so
+*.so.*
+*.o
+*.lo
+*.tar.gz
+*.log
+.coverage
+*.pyc
+cov_html/
+
+# temp
+shards/all_in_one_with_mysql/metadata/
+shards/mishards/.env
+*.swp
