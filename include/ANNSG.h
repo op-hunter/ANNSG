@@ -7,16 +7,34 @@
 
 #include "definations.h"
 #include "distance.h"
+#include "utils.h"
 
 namespace annsg {
 
 class ANNSG {
  public:
-    ANNSG(size_t n, float *pdata, size_t dim, MetrcType mt);
+    ANNSG(size_t n, size_t dim, MetrcType mt);
     ~ANNSG();
+
+    void Load(const char *file_location);
+    void Save(const char *file_location);
+    void LoadKnng(const char *file_location);
+    void SetKnng(const char **knng, size_t n);
+    void Resize(const size_t n);
+    void Build(const size_t n, const float *data, size_t nn);
+    void Search(const float *data, const float *query_data, size_t topk, float *top_dists, size_t *top_ids);
  private:
-    size_t nv_; // num of vectors in the index
-    size_t dim_;
+    void init(const float *data, size_t *f);
+    void search(const float *query, )
+
+    size_t d_;
+    size_t nb_;
+    size_t nn_;
+    size_t np_;
+    Distance* df_;
+    size_t link_size_;
+    char **graph;
+    uint8_t index_status_; // 0: nothing 1: knng  2: annsg
 
 };
 
