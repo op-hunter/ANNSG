@@ -22,10 +22,12 @@ class ANNSG {
     void SetKnng(const char **knng, size_t n);
     void Resize(const size_t n);
     void Build(const size_t n, const float *data, size_t nn);
-    void Search(const float *data, const float *query_data, size_t topk, float *top_dists, size_t *top_ids);
+    void Search(const float *data, const float *query_data, size_t topk, float *top_dists, size_t *top_ids, const size_t search_k);
  private:
     void init(const float *data, size_t *f);
-    void search(const float *query, )
+    void search(const float *pdata, const float *query, min_heap *knn, min_heap *candidates, boost::dynamic_bitset<> *vis = nullptr);
+    void make_graph(size_t *f);
+    void no_one_less(size_t *f);
 
     size_t d_;
     size_t nb_;

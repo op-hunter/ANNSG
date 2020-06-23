@@ -75,6 +75,11 @@ inline void join(int x, int y, int *f) {
         f[fx] = fy;
 }
 
+void ANNSG::search(const float *pdata, const float *query, min_heap *knn, min_heap *candidates,
+                   boost::dynamic_bitset<> *vis) {
+    boost::dynamic_bitset<> *pvis = vis == nullptr ? new boost::dynamic_bitset<>(nb_, 0) : vis;
+}
+
 void ANNSG::init(const float *data, size_t *f) {
     float *c = (float *) malloc(sizeof(float) * d_);
     for (auto i = 0; i < d_; ++ i) {
@@ -90,7 +95,14 @@ void ANNSG::init(const float *data, size_t *f) {
         c[i] /= nb_;
     }
 
+    min_heap *pknn = new min_heap(nn_);
+    min_heap *pcandi = new min_heap(nn_ << 3);
+    search(c, pknn, pcandi);
+    np_ = pknn->top().first;
+
     free(c);
+    free(pknn);
+    free(pcandi);
 }
 
 void ANNSG::Build(const size_t n, const float *data, size_t nn) {
@@ -108,8 +120,28 @@ void ANNSG::Build(const size_t n, const float *data, size_t nn) {
     link_size_ = (nn_ + 1) * sizeof(size_t);
     size_t* fa = (size_t *) malloc(sizeof(size_t) * nb_);
     init(data, fa);
+    make_graph(fa);
+    no_one_less(fa);
+//    min_heap *pknn = new min_heap(nn);
+//    min_heap *pcandi = new min_heap(nn << 3);
 
+    index_status_ = 2;
     free(fa);
+}
+
+void ANNSG::Search(const float *data, const float *query_data, size_t topk, float *top_dists,
+                   size_t *top_ids, const size_t search_k) {
+    min_heap *pknn = new min_heap(search_k);
+    boost::dynamic_bitset<> vis{nb_, 0};
+    search(data, query_data, pknn, nullptr, &vis);
+
+
+    for (auto i = 0; i < topk && !pknn->empty(); ++ i) {
+        top_ids[i] = pknn->top().first;
+        top_dists[i] = pknn->top().second;
+        pknn->pop();
+    }
+    free(pknn);
 }
 
 }

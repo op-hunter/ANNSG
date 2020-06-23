@@ -11,6 +11,7 @@ set(alg_src
     )
 
 add_executable(test_annsg tests/test_annsg.cpp src/ANNSG.cpp)
+add_executable(test_heap tests/test_heap.cpp)
 target_link_libraries(test_annsg
                       pthread)
 #add_subdirectory(src)
