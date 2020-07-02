@@ -11,14 +11,19 @@ namespace annsg {
 
     class Distance {
     public:
-        virtual float dist(const float* a, const float* b, size_t dim, size_t offseta = 0, size_t offsetb = 0) const = 0;
+        virtual float disti(const float* a, const float* b, const size_t dim, size_t offseta = 0, size_t offsetb = 0) const = 0;
+        virtual float disto(const float* a, const float* b, const size_t dim) const = 0;
         virtual ~Distance() {};
     };
 
     class DistanceIP : public Distance {
     public:
-        float dist(const float* a, const float* b, size_t dim, size_t offseta = 0, size_t offsetb = 0) const {
+        float disti(const float* a, const float* b, const size_t dim, size_t offseta = 0, size_t offsetb = 0) const {
+            return disto(a, b, dim);
+        }
+        float disto(const float* a, const float* b, const size_t dim) const {
             float ret = 0.0;
+            // todo: to be implemented
             return ret;
         }
     };
@@ -37,9 +42,12 @@ namespace annsg {
                 free(pnorm_);
             delete dip_;
         }
-        float dist(const float* a, const float* b, size_t dim, size_t offseta = 0, size_t offsetb = 0) const {
+        float disti(const float* a, const float* b, const size_t dim, size_t offseta = 0, size_t offsetb = 0) const {
             float ret = *((float*)pnorm_ + offseta) + *((float*)pnorm_ + offsetb);
-            return ret - dip_->dist(a, b, dim) * 2;
+            return ret - dip_->disti(a, b, dim) * 2;
+        }
+        float disto(const float* a, const float* b, const size_t dim) const {
+            // todo: to be implemented
         }
         DistanceIP *dip_;
         char *pnorm_;

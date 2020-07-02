@@ -22,7 +22,7 @@ inline bool cmp(const P &a, const P &b) {
 
 struct min_heap {
     explicit min_heap(size_t size) {
-        cap = size;
+        cap = size + 2;
         tot = 0;
         pa = (P*) malloc(sizeof(P) * cap);
     }
@@ -45,9 +45,10 @@ struct min_heap {
         cap = new_size;
     }
 
-    void push(P e) {
-        if (tot >= cap) {
-            resize(std::max(cap + 1, cap + (cap >> 1)));
+    void push(P e, bool auto_resize = true) {
+        if (tot >= cap - 1) {
+            if (auto_resize)
+                resize(std::max(cap + 1, cap + (cap >> 1)));
         }
         size_t i;
         for (i = ++ tot; i > 1 && cmp(e, pa[i >> 1]); i >>= 1) {
@@ -84,6 +85,25 @@ struct min_heap {
 
     void clear() {
         tot = 0;
+    }
+
+    size_t size() {
+        return tot;
+    }
+
+    size_t capacity() {
+        return cap;
+    }
+
+    P get_max_dist_elem() {
+        P ret(pa[1].first, pa[1].second);
+        for (size_t i = (tot >> 1) + 1; i <= tot; ++ i) {
+            if (ret.second > pa[i].second) {
+                ret.second = pa[i].second;
+                ret.first = pa[i].first;
+            }
+        }
+        return ret;
     }
 
     P *pa = nullptr;

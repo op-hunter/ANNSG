@@ -29,12 +29,13 @@ class ANNSG {
     void make_graph(size_t *f);
     void no_one_less(size_t *f);
 
-    size_t d_;
-    size_t nb_;
-    size_t nn_;
-    size_t np_;
-    Distance* df_;
-    size_t link_size_;
+    size_t d_; // dim
+    size_t nb_; // num of base
+    size_t nn_; // max num of neighbors
+    size_t np_; // navigate point id
+    int metric_type_;
+    Distance* df_; // distance function
+    size_t link_size_; // size of per link
     char **graph;
     uint8_t index_status_; // 0: nothing 1: knng  2: annsg
 

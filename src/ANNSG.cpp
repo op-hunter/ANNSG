@@ -10,7 +10,7 @@
 namespace annsg{
 
 ANNSG::ANNSG(size_t n, size_t dim, MetrcType mt)
-: nb_(n), d_(dim), nn_(0), link_size_(0) {
+: nb_(n), d_(dim), nn_(0), link_size_(0), metric_type_(mt) {
     if (mt == MetrcType::IP)
         df_ = new DistanceIP();
     else if (mt == MetrcType::L2)
@@ -63,6 +63,10 @@ void ANNSG::Resize(const size_t n) {
     free(graph);
     graph = new_graph;
     nb_ = n;
+    if (metric_type_ == MetrcType::L2) {
+        delete df_;
+        df_ = new DistanceL2(n);
+    }
 }
 
 inline int find(int x, int *f) {
@@ -78,6 +82,42 @@ inline void join(int x, int y, int *f) {
 void ANNSG::search(const float *pdata, const float *query, min_heap *knn, min_heap *candidates,
                    boost::dynamic_bitset<> *vis) {
     boost::dynamic_bitset<> *pvis = vis == nullptr ? new boost::dynamic_bitset<>(nb_, 0) : vis;
+    min_heap *tmp_knn = new min_heap(nn_);
+    size_t *plink = (size_t *)graph[np_];
+    for (auto i = 1; i <= *(plink); ++ i) {
+        pvis->set(plink[i], true);
+        tmp_knn->push(P(plink[i], df_->disto(pdata + d_ * (size_t)(plink[i]), query, d_)));
+//        pvis[graph[np_][i]] = true;
+    }
+    srand((unsigned)time(0));
+    while (tmp_knn->size() < nn_) {
+        auto id = random() % nb_;
+        if (pvis->test(id)) continue;
+        pvis->set(id, true);
+        tmp_knn->push(P(id, df_->disto(pdata + d_ * id, query, d_)));
+    }
+
+    while (!tmp_knn->empty()) {
+        auto tp = tmp_knn->top();
+        tmp_knn->pop();
+        size_t cur_id = tp.first;
+        knn->push(tp, false);
+        size_t *p_cur_nbs = (size_t*)graph[cur_id];
+        for (auto i = 1; i <= *p_cur_nbs; ++ i) {
+            size_t check_id = p_cur_nbs[i];
+            if (pvis->test(check_id)) continue;
+            pvis->set(check_id, true);
+            float dist = df_->disto(pdata + d_ * check_id, query, d_);
+            P nn(check_id, dist);
+            if (candidates) candidates->push(nn);
+            if (dist >= tmp_knn->get_max_dist_elem().second) continue;
+            tmp_knn->push(nn, false);
+        }
+    }
+
+    delete tmp_knn;
+    if (!vis)
+        delete pvis;
 }
 
 void ANNSG::init(const float *data, size_t *f) {
@@ -96,13 +136,15 @@ void ANNSG::init(const float *data, size_t *f) {
     }
 
     min_heap *pknn = new min_heap(nn_);
-    min_heap *pcandi = new min_heap(nn_ << 3);
-    search(c, pknn, pcandi);
+//    min_heap *pcandi = new min_heap(nn_ << 3);
+    srand((unsigned)time(0));
+    np_ = random() % nb_;
+    search(data, c, pknn, nullptr);
     np_ = pknn->top().first;
 
     free(c);
-    free(pknn);
-    free(pcandi);
+    delete pknn;
+//    free(pcandi);
 }
 
 void ANNSG::Build(const size_t n, const float *data, size_t nn) {
@@ -113,11 +155,11 @@ void ANNSG::Build(const size_t n, const float *data, size_t nn) {
         std::cout << "build failed, please set Knng first!" << std::endl;
         return;
     }
+    nn_ = nn;
+    link_size_ = (nn_ + 1) * sizeof(size_t);
     if (n > nb_) {
         Resize(n);
     }
-    nn_ = nn;
-    link_size_ = (nn_ + 1) * sizeof(size_t);
     size_t* fa = (size_t *) malloc(sizeof(size_t) * nb_);
     init(data, fa);
     make_graph(fa);
